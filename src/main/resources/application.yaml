@@ -1,0 +1,8 @@
+bank-account:
+  audit:
+    # On expiry publish the valid greedy packing, explicitly marked as unproven.
+    exact-search-timeout: 10s
+    shutdown-timeout: 10s
+  tracker:
+    # Each queued group contains exactly 1,000 transactions waiting for audit.
+    max-queued-audit-groups: 10
