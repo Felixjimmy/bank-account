@@ -133,6 +133,10 @@ class TransactionProducerTest {
       producer.close();
     }
 
+    assertInstanceOf(
+      IllegalStateException.class,
+      producer.failure()
+    );
     assertEquals(0, producer.creditsProduced() + producer.debitsProduced());
     int failuresAtClose = processed.size();
     Thread.sleep(100);

@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,6 +23,7 @@ public final class TransactionProducer implements AutoCloseable {
   private final AtomicBoolean started = new AtomicBoolean();
   private final AtomicLong credits = new AtomicLong();
   private final AtomicLong debits = new AtomicLong();
+  private volatile RuntimeException failure;
   private Thread creditThread;
   private Thread debitThread;
 
@@ -80,6 +82,7 @@ public final class TransactionProducer implements AutoCloseable {
             transaction.id(),
             failure
           );
+          recordFailure(failure);
           stopBoth();
           break;
         }
@@ -111,6 +114,7 @@ public final class TransactionProducer implements AutoCloseable {
       }
     } catch (RuntimeException failure) {
       log.error("{} producer failed", type, failure);
+      recordFailure(failure);
       stopBoth();
     }
   }
@@ -126,28 +130,41 @@ public final class TransactionProducer implements AutoCloseable {
     }
   }
 
+  private void recordFailure(RuntimeException failure) {
+    if (this.failure == null) {
+      this.failure = failure;
+    }
+  }
+
   /** Stops both producers and waits for their threads to finish. */
   @Override
   public void close() {
     stopBoth();
-    join(creditThread);
-    join(debitThread);
+    join(creditThread, Duration.ofSeconds(5));
+    join(debitThread, Duration.ofSeconds(5));
     log.info(
       "Stopped producers after {} credits and {} debits",
       credits.get(),
       debits.get()
     );
+    if (failure != null) {
+      log.error("Transaction producer stopped after a failure", failure);
+    }
   }
 
   /** Waits for a producer thread to exit while restoring this thread's interrupt status. */
-  private static void join(Thread thread) {
+  private static void join(Thread thread, Duration timeout) {
     if (thread == null || thread == Thread.currentThread()) {
       return;
     }
     boolean interrupted = false;
-    while (thread.isAlive()) {
+    long deadline = System.nanoTime() + timeout.toNanos();
+    while (thread.isAlive() && System.nanoTime() < deadline) {
       try {
-        thread.join();
+        long remaining = deadline - System.nanoTime();
+        if (remaining > 0) {
+          thread.join(TimeUnit.NANOSECONDS.toMillis(remaining));
+        }
       } catch (InterruptedException e) {
         interrupted = true;
       }
@@ -170,5 +187,10 @@ public final class TransactionProducer implements AutoCloseable {
   /** Reports whether the producer threads are still allowed to generate transactions. */
   public boolean isRunning() {
     return running.get();
+  }
+
+  /** Returns the first runtime failure recorded by the producer threads, if any. */
+  public RuntimeException failure() {
+    return failure;
   }
 }
