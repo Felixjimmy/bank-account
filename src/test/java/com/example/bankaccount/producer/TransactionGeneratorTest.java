@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class TransactionGeneratorTest {
 
+  /** Samples 1,000 generated credits and checks non-null IDs, penny precision and the allowed amount range. */
   @Test
   void defaultGeneratorProducesRandomIdsAndValidPennyAmounts() {
     TransactionGenerator generator = new TransactionGenerator();
@@ -25,6 +26,7 @@ class TransactionGeneratorTest {
     }
   }
 
+  /** Checks both inclusive amount limits, debit/credit signs and preservation of the supplied ID. */
   @Test
   void includesBothAmountBoundariesAndAppliesSigns() {
     UUID id = UUID.randomUUID();
@@ -56,6 +58,7 @@ class TransactionGeneratorTest {
     assertEquals(id, minimum.generate(TransactionType.CREDIT).id());
   }
 
+  /** Rejects missing suppliers, transaction type, generated amount and generated ID. */
   @Test
   void rejectsNullDependenciesAndGeneratedValues() {
     assertThrows(NullPointerException.class, () ->
@@ -82,6 +85,7 @@ class TransactionGeneratorTest {
     );
   }
 
+  /** Rejects values below or above the allowed range and values with sub-penny precision. */
   @Test
   void rejectsOutOfRangeGeneratedAmounts() {
     assertThrows(IllegalArgumentException.class, () ->

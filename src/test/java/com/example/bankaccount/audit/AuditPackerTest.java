@@ -12,6 +12,7 @@ class AuditPackerTest {
 
   private final AuditPacker packer = new AuditPacker();
 
+  /** Forces a deadline on hard inputs and checks that every transaction survives without a false optimality claim. */
   @Test
   void deadlineDuringSearchReturnsCompleteValidPackingWithoutClaimingMinimum() {
     for (int seed : new int[]{6, 9}) {
@@ -28,6 +29,7 @@ class AuditPackerTest {
     }
   }
 
+  /** Checks that matching the lower bound proves optimality without starting the exact-search clock. */
   @Test
   void greedyProofDoesNotConsumeExactSearchBudget() {
     var timed = new AuditPacker(java.time.Duration.ofNanos(1),
@@ -38,18 +40,21 @@ class AuditPackerTest {
     assertEquals(0, result.exactSearchNanos());
   }
 
+  /** Rejects zero and negative search budgets before packing can start. */
   @Test
   void rejectsNonpositiveExactSearchTimeout() {
     assertThrows(IllegalArgumentException.class, () -> new AuditPacker(java.time.Duration.ZERO));
     assertThrows(IllegalArgumentException.class, () -> new AuditPacker(java.time.Duration.ofSeconds(-1)));
   }
 
+  /** Rejects missing timeout configuration and a missing transaction list. */
   @Test
   void rejectsNullTimeoutAndInput() {
     assertThrows(NullPointerException.class, () -> new AuditPacker(null));
     assertThrows(NullPointerException.class, () -> packer.pack(null));
   }
 
+  /** Checks that an already-interrupted caller receives cancellation instead of a packing result. */
   @Test
   void interruptedPackingNeverReturnsAnUnprovedResult() {
     Thread.currentThread().interrupt();
@@ -59,6 +64,7 @@ class AuditPackerTest {
     } finally { Thread.interrupted(); }
   }
 
+  /** Runs hard seeded inputs and checks valid completion or prompt cancellation with interrupt status preserved. */
   @Test
   void seededRandomInputsEitherFinishValidlyOrCooperateWithCancellation() throws Exception {
     for (int seed : new int[]{6, 9}) {
@@ -85,6 +91,7 @@ class AuditPackerTest {
     }
   }
 
+  /** Checks known optimal packings and complete membership at both 1,000 and 100,000 transactions. */
   @Test
   void largeDifficultSubmissionsRetainEveryTransactionAtTheProvenMinimum() {
     for (int size : new int[]{1000, 100000}) {
@@ -95,6 +102,7 @@ class AuditPackerTest {
     }
   }
 
+  /** Compares 600 small cases against an independent exhaustive solver to catch unsafe search pruning. */
   @Test
   void pruningAgreesWithIndependentPartitionsForPenniesDuplicatesAndSlack() {
     var random = new Random(6281);
@@ -112,6 +120,7 @@ class AuditPackerTest {
     }
   }
 
+  /** Shuffles penny-sensitive fixtures and checks that exact search still finds the known minimum. */
   @Test
   void pennySeparatedAmountsRequireExactPackingRegardlessOfInputOrder() {
     for (int size : new int[]{8, 16, 24}) {
@@ -151,6 +160,7 @@ class AuditPackerTest {
     return result;
   }
 
+  /** Checks that opposite signs do not cancel capacity and one extra penny requires another batch. */
   @Test
   void respectsAbsoluteValueAndTheLastPenny() {
     assertEquals(1, pack(50000000, -50000000).batches().size());
@@ -159,6 +169,7 @@ class AuditPackerTest {
     assertThrows(IllegalArgumentException.class, () -> pack());
   }
 
+  /** Uses a fixture where both greedy approaches need three batches but exact search finds two. */
   @Test
   void exactSearchImprovesBothGreedySolutions() {
     // Greedy opens three bins. 40+27+33 and 38+26+19+17 fill two.
@@ -178,6 +189,7 @@ class AuditPackerTest {
     );
   }
 
+  /** Checks that five large items need three batches even though their total value suggests only two. */
   @Test
   void provesMinimumAboveVolumeBound() {
     var result = pack(
@@ -191,6 +203,7 @@ class AuditPackerTest {
     assertEquals(3, result.batches().size());
   }
 
+  /** Checks exhaustive rejection of an impossible two-batch packing before proving three are needed. */
   @Test
   void rulesOutTwoBinsWhenNoSubsetFillsOneExactly() {
     var result = pack(
@@ -206,6 +219,7 @@ class AuditPackerTest {
     assertEquals(3, result.batches().size());
   }
 
+  /** Compares 150 seeded small inputs with an independent enumeration of all feasible partitions. */
   @Test
   void matchesExhaustivePartitionsOnSmallGroups() {
     var random = new Random(317);

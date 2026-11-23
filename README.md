@@ -98,15 +98,55 @@ shutdown. The test-only helpers `AuditScale` and `DifficultAuditBenchmark`
 support reproducible scale and hard-input checks; the application does not
 start them.
 
-After the 10-second change, 19 focused packer, worker and configuration tests
-passed. A full run had 39 passes and two HTTP startup errors because the
-execution environment denied loopback connections. An earlier full run under
-the five-second default passed 41 tests. The latest run therefore does not
-independently confirm the HTTP integration tests.
+The full suite passed all 43 tests on 23 November 2026, with no failures,
+errors or skipped tests, including the real HTTP and console-publication
+integration tests. The earlier environment-related HTTP errors are resolved.
+The clean JaCoCo run measured **94.73% line coverage** and **87.70% branch
+coverage** of production code.
+
+Both producer pipeline tests measure a 20-second window after a two-second
+warm-up, with audit processing enabled and disabled. They independently assert
+25 credits and 25 debits per second within a 5% tolerance (23.75 to 26.25 each),
+using actual elapsed time. This allows ordinary scheduling variation on a
+shared host while detecting sustained rate regressions or one producer masking
+the other's slowdown. It is not a hard real-time or overloaded-host guarantee.
+
+| Latest measured rate (transactions/second) | Credits | Debits | Combined |
+|---|---:|---:|---:|
+| Audit enabled | 24.886 | 24.936 | 49.823 |
+| Audit disabled | 24.796 | 24.796 | 49.591 |
+
+The console-publication test waits for its expected submissions before closing
+the context, so random startup transactions cannot race the shutdown deadline.
+Separate worker tests verify shutdown draining and deadline failures.
+
+To reproduce coverage without changing the build configuration:
+
+```powershell
+.\mvnw.cmd clean org.jacoco:jacoco-maven-plugin:0.8.14:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.14:report
+```
+
+Open `target/site/jacoco/index.html`. The opt-in latency benchmarks are outside
+the regular 43-test suite. All test methods have comments explaining their
+purpose.
 
 The application has one account, one audit worker and a bounded in-memory
-queue. Spring Boot serves HTTP and manages lifecycle, springdoc provides
-OpenAPI, Lombok provides logging and Spring test support covers integration.
-Money and packing use the Java standard library. Solver libraries evaluated
-during research are not production dependencies; review library credibility
-and compatibility again when upgrading the versions in `pom.xml`.
+queue. Money and packing use the Java standard library. Solver libraries
+evaluated during research are not production dependencies.
+
+## Dependency assessment
+
+Dependencies were selected for documented behaviour, compatibility with the
+build and a limited role in the application. Versions are pinned explicitly or
+managed by the Spring Boot parent in `pom.xml`.
+
+| Dependency | Reason for selection and evidence | Tradeoff and verification |
+|---|---|---|
+| Spring Boot 4.2.0 / Web MVC | Provides HTTP serving and lifecycle management. Its [documented dependency management](https://docs.spring.io/spring-boot/reference/using/build-systems.html) supplies a curated set of supported versions, reducing manual version mismatches. | Adds framework and transitive dependency overhead. Real application tests exercise startup, HTTP responses and shutdown; reassess compatibility when upgrading the parent. |
+| springdoc-openapi 3.2.1 | Its [project documentation](https://springdoc.org/) describes generation of OpenAPI and Swagger UI for Spring applications, avoiding a separate hand-maintained API schema. | Adds endpoints and a separately versioned integration. The HTTP test checks the generated balance schema and Swagger UI with the pinned versions. |
+| Lombok, parent-managed | The [documented logging annotation](https://projectlombok.org/features/log) generates a conventional logger field. Usage is limited to logging rather than money or packing behaviour. | Requires annotation processing and compiler compatibility. Compilation verifies generation; explicit logger fields remain a straightforward replacement. |
+| Spring Boot test starter, parent-managed and test-scoped | The [official testing documentation](https://docs.spring.io/spring-boot/reference/testing/index.html) describes its integration support and JUnit Jupiter assertions. It lets tests exercise real context wiring as well as isolated domain logic. | Test libraries do not form part of the application's runtime dependencies. Real-thread timing tests need scheduling tolerance; independent exhaustive packing checks reduce reliance on implementation-specific expectations. |
+
+These are suitability and compatibility assessments, not a claim that any
+dependency is vulnerability-free. Review release notes, advisories and
+compatibility when changing versions, then rerun the application tests.

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 class TransactionProducerTest {
 
+  /** Checks credits and debits use separate named threads, counters match acceptance and close stops production. */
   @Test
   void dedicatedThreadsSubmitBothSignsAndStopCleanly() throws Exception {
     var seen = new CopyOnWriteArrayList<Transaction>();
@@ -87,6 +88,7 @@ class TransactionProducerTest {
     assertEquals(processedAtClose, seen.size());
   }
 
+  /** Checks repeated start is rejected so a producer cannot create duplicate generation threads. */
   @Test
   void startCanOnlyBeCalledOnce() {
     BankAccountService account = noOpAccount();
@@ -102,6 +104,7 @@ class TransactionProducerTest {
     }
   }
 
+  /** Injects an account failure and checks both producers stop, record the failure and count no rejected work. */
   @Test
   void processingFailureStopsBothThreads() throws Exception {
     var processed = new CopyOnWriteArrayList<Transaction>();
@@ -143,6 +146,7 @@ class TransactionProducerTest {
     assertEquals(failuresAtClose, processed.size());
   }
 
+  /** Slows transaction acceptance and checks subsequent transactions remain spaced rather than arriving in catch-up bursts. */
   @Test
   void slowProcessingDoesNotCauseCatchUpBursts() throws Exception {
     var timestampsByThread = new ConcurrentHashMap<

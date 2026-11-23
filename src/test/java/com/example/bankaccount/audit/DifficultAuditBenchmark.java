@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 /** Opt-in adversarial measurement; each sample runs in a disposable JVM. */
 public final class DifficultAuditBenchmark {
+    /** Creates reproducible 1,000-transaction inputs with alternating signs across the full amount range. */
     static List<Transaction> randomInput(int seed) {
         var random = new Random(seed);
         var input = new ArrayList<Transaction>();
@@ -19,6 +20,7 @@ public final class DifficultAuditBenchmark {
         }
         return input;
     }
+    /** Creates penny-sensitive inputs with a known optimum of four transactions per batch. */
     static List<Transaction> balanced(int size) {
         if (size < 8 || size % 4 != 0) throw new IllegalArgumentException("Size must be a multiple of four, at least eight");
         var input = new ArrayList<Transaction>(size);
@@ -29,6 +31,7 @@ public final class DifficultAuditBenchmark {
         return input;
     }
 
+    /** Checks exact membership and absolute capacity, plus the known batch count when expected is nonnegative. */
     static void validate(List<Transaction> input, AuditResult result, int expected) {
         if (expected >= 0 && result.batches().size() != expected) throw new AssertionError("Wrong minimum batch count");
         var remaining = new HashMap<UUID, Transaction>();
@@ -45,6 +48,7 @@ public final class DifficultAuditBenchmark {
         if (!remaining.isEmpty()) throw new AssertionError("Missing transactions");
     }
 
+    /** Runs opt-in scenarios in isolated JVMs so expensive searches can be bounded independently. */
     public static void main(String[] args) throws Exception {
         if (args.length > 0 && args[0].equals("sample")) {
             String scenario = args[1];

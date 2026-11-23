@@ -19,6 +19,7 @@ import tools.jackson.databind.ObjectMapper;
 @org.junit.jupiter.api.Tag("integration")
 class AuditApplicationTest {
 
+  /** Starts the real application and checks two JSON submissions, known batch totals and one unsubmitted remainder. */
   @Test
   void defaultApplicationPrintsOneCompleteSubmissionAndReportsRemainder(
     CapturedOutput output
@@ -43,6 +44,15 @@ class AuditApplicationTest {
       );
       expectedTotal = tx.amount().abs().multiply(BigDecimal.valueOf(1000));
       mapper = context.getBean(ObjectMapper.class);
+      // The random startup group can consume the full 10-second search budget.
+      // Wait for both submissions before closing so this output test does not
+      // race the separate 10-second shutdown deadline (covered by AuditWorkerTest).
+      assertTimeoutPreemptively(java.time.Duration.ofSeconds(25), () -> {
+        var envelope = java.util.regex.Pattern.compile("(?ms)^\\{\\R.*?^\\}$");
+        while (envelope.matcher(output.getOut()).results().count() < 2) {
+          Thread.sleep(10);
+        }
+      });
     }
     // Each printed envelope starts and ends with a brace at column zero.
     var documents = java.util.regex.Pattern.compile("(?ms)^\\{\\R.*?^\\}$")

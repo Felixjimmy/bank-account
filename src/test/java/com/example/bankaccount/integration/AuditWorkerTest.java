@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 @org.junit.jupiter.api.Tag("integration")
 class AuditWorkerTest {
 
+  /** Checks missing worker collaborators and a zero shutdown deadline are rejected at construction. */
   @Test
   void rejectsNullConstructorDependenciesAndNonpositiveShutdownTimeout() {
     var tracker = new InMemoryBalanceTracker(1);
@@ -27,6 +28,7 @@ class AuditWorkerTest {
       new AuditWorker(tracker, new AuditPacker(), result -> {}, java.time.Duration.ZERO));
   }
 
+  /** Forces a packing timeout and checks honest metadata, complete membership and continued processing of the next group. */
   @Test
   @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
   void timedOutGroupIsPublishedAndQueuedGroupsContinue(org.springframework.boot.test.system.CapturedOutput output) throws Exception {
@@ -67,6 +69,7 @@ class AuditWorkerTest {
     assertTrue(output.getAll().contains("minimumProven=true, searchTimedOut=false"));
   }
 
+  /** Blocks publication and checks bounded shutdown reports in-flight, queued and partial work while stopping acceptance. */
   @Test
   void shutdownDeadlineReportsAllOutstandingWorkEvenWhenPublisherIgnoresInterrupts() throws Exception {
     var tracker = new InMemoryBalanceTracker(2);
@@ -99,6 +102,7 @@ class AuditWorkerTest {
     }
   }
 
+  /** Stalls then releases publication and checks backpressure plus ordered draining of three complete groups. */
   @Test
   void stalledPublisherResumesAndDrainsCompleteGroupsInOrder() throws Exception {
     var tracker = new InMemoryBalanceTracker(1);
@@ -157,6 +161,7 @@ class AuditWorkerTest {
     );
   }
 
+  /** Injects a publication failure and checks new transactions are rejected and close reports the failure. */
   @Test
   void publisherFailureStopsAcceptanceAndIsReportedOnClose() {
     var tracker = new InMemoryBalanceTracker(1);

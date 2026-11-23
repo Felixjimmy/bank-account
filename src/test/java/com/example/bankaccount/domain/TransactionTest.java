@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 class TransactionTest {
 
+  /** Rejects transactions with either a missing ID or a missing amount. */
   @Test
   void requiresAnIdAndAmount() {
     assertThrows(NullPointerException.class, () ->
@@ -18,6 +19,7 @@ class TransactionTest {
     );
   }
 
+  /** Rejects zero-value transactions and amounts containing fractions of a penny. */
   @Test
   void rejectsZeroAndAmountsWithMoreThanTwoDecimalPlaces() {
     assertThrows(IllegalArgumentException.class, () ->
@@ -28,6 +30,7 @@ class TransactionTest {
     );
   }
 
+  /** Checks a whole-pound amount is normalized to exactly two decimal places. */
   @Test
   void normalizesValidAmountsToPennyPrecision() {
     Transaction transaction = new Transaction(

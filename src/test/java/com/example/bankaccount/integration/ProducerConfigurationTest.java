@@ -17,6 +17,7 @@ class ProducerConfigurationTest {
       ProducerConfiguration.class
     );
 
+  /** Checks the application context omits the producer when no account service is available. */
   @Test
   void doesNotRegisterProducerWithoutBankAccountService() {
     contextRunner.run(context ->
@@ -24,6 +25,7 @@ class ProducerConfigurationTest {
     );
   }
 
+  /** Checks the application context creates and starts the producer when an account service is present. */
   @Test
   void registersAndStartsProducerWhenBankAccountServiceIsAvailable() {
     contextRunner

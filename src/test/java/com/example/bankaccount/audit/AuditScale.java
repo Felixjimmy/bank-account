@@ -9,6 +9,7 @@ import java.util.*;
 /** Run after test compilation with java -cp "target/test-classes;target/classes" com.example.bankaccount.audit.AuditScale 100000 */
 public final class AuditScale {
 
+  /** Measures packing time and allocation for a seeded input of the requested size; this is not a JUnit test. */
   public static void main(String[] args) {
     int size = Integer.parseInt(args[0]);
     var random = new Random(317);

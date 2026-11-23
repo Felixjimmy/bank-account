@@ -18,11 +18,17 @@ import org.junit.jupiter.api.Test;
 @org.junit.jupiter.api.Tag("integration")
 class ProducerPipelineTest {
 
+  private static final double TARGET_RATE_PER_SECOND = 25.0;
+  // Allow 5% scheduling variation over the measured window on a shared host.
+  private static final double RATE_TOLERANCE_PER_SECOND = 1.25;
+
+  /** Checks each producer stays near 25/s without an audit worker and reconciles balance and group membership. */
   @Test
   void producerAndTrackerReconcileAcceptedTransactions() throws Exception {
     exercisePipeline(false);
   }
 
+  /** Checks each producer stays near 25/s while audit runs, with one complete valid submission and no lost transactions. */
   @Test
   void producerTrackerAndAuditPublishTheAcceptedGroup() throws Exception {
     exercisePipeline(true);
@@ -139,6 +145,8 @@ class ProducerPipelineTest {
     }
     double seconds =
       (windowEnd - windowStart) / (double) TimeUnit.SECONDS.toNanos(1);
+    double creditRate = measuredCredits / seconds;
+    double debitRate = measuredDebits / seconds;
     System.out.printf(
       Locale.ROOT,
       "THROUGHPUT audit=%s seconds=%.6f credits=%d debits=%d creditRate=%.3f debitRate=%.3f totalRate=%.3f%n",
@@ -146,9 +154,19 @@ class ProducerPipelineTest {
       seconds,
       measuredCredits,
       measuredDebits,
-      measuredCredits / seconds,
-      measuredDebits / seconds,
+      creditRate,
+      debitRate,
       (measuredCredits + measuredDebits) / seconds
+    );
+    // Check each producer independently so one cannot hide the other's slowdown.
+    // Use actual elapsed time after the two-second warm-up, with audit on and off.
+    assertAll(
+      () -> assertEquals(TARGET_RATE_PER_SECOND, creditRate,
+        RATE_TOLERANCE_PER_SECOND,
+        "Credit rate must be within 5% of 25/s; audit=" + auditEnabled),
+      () -> assertEquals(TARGET_RATE_PER_SECOND, debitRate,
+        RATE_TOLERANCE_PER_SECOND,
+        "Debit rate must be within 5% of 25/s; audit=" + auditEnabled)
     );
   }
 }

@@ -20,6 +20,7 @@ import org.springframework.boot.web.server.context.WebServerApplicationContext;
 @org.junit.jupiter.api.Tag("integration")
 class BalanceApplicationTest {
 
+  /** Starts the real HTTP server and checks the exact negative balance, OpenAPI schema and Swagger UI endpoints. */
   @Test
   void realApplicationServesBalanceOpenApiAndSwagger() throws Exception {
     try (

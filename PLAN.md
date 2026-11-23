@@ -43,8 +43,19 @@ part of the current implementation.
 
 ## Verification state
 
-The latest focused packer, worker and configuration run passed 19 tests. The
-latest full suite had 39 passes and two HTTP startup errors caused by denied
-loopback connections in the execution environment. An earlier full suite
-under the five-second default passed 41 tests. Re-run the complete suite where
-local HTTP connections are allowed before delivery.
+The full suite passed all 43 tests on 23 November 2026 with no failures,
+errors or skipped tests, including both real-application integration tests.
+The earlier environment-related HTTP errors are resolved.
+The clean JaCoCo run measured 94.73% line coverage and 87.70% branch coverage.
+
+Producer pipeline tests now assert each producer's rate independently:
+25 transactions per second within 5%, measured over 20 seconds after a
+two-second warm-up, with audit enabled and disabled. Every test method has a
+comment explaining its purpose, including the opt-in latency benchmarks.
+The latest combined rates were 49.823/s with audit and 49.591/s without audit.
+The console-publication test waits for output before closing; separate worker
+tests continue to check shutdown draining and deadline failures.
+
+The README records the dependency assessment, supporting documentation and
+the command for generating a fresh JaCoCo coverage report. The minimum-batch
+qualification on exact-search timeout remains as described above.

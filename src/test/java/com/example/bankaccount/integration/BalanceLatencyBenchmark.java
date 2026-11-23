@@ -29,6 +29,7 @@ class BalanceLatencyBenchmark {
 
   private static final int GROUPS = 1500;
 
+  /** Measures real HTTP balance latency during audit publication and checks valid responses overlap actual console submissions. */
   @Test
   void measureDefaultApplication() throws Exception {
     var console = System.out;
@@ -115,6 +116,7 @@ class BalanceLatencyBenchmark {
     }
   }
 
+  /** Compares idle and busy HTTP balance latency while checking the unchanged balance and complete draining of a preloaded queue. */
   @Test
   void measure() throws Exception {
     try (

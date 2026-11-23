@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class InMemoryBalanceTrackerTest {
 
+  /** Checks the 999/1,000/1,001 boundary: only a complete group is released, in acceptance order. */
   @Test
   void onlyCompleteGroupsAreExposedInAcceptanceOrder() {
     var tracker = new InMemoryBalanceTracker(1);
@@ -33,6 +34,7 @@ class InMemoryBalanceTrackerTest {
     assertEquals(new BigDecimal("200200.00"), tracker.exactBalance());
   }
 
+  /** Interrupts a producer blocked by a full queue and verifies its transaction was never accepted. */
   @Test
   void interruptedWaitPreservesBalanceAndInterruptStatus() throws Exception {
     var tracker = new InMemoryBalanceTracker(1);
@@ -64,6 +66,7 @@ class InMemoryBalanceTrackerTest {
     }
   }
 
+  /** Checks zero balance, exact penny arithmetic, negative balances and no balance change after null input. */
   @Test
   void exactArithmeticSupportsNegativeBalancesAndRejectedInputs() {
     var tracker = new InMemoryBalanceTracker(1);
@@ -82,6 +85,7 @@ class InMemoryBalanceTrackerTest {
     assertEquals(new BigDecimal("-100.15"), tracker.exactBalance());
   }
 
+  /** Runs credits and debits concurrently and reconciles the balance with all 2,000 retained unique transactions. */
   @Test
   void concurrentWritersReconcileWithRetainedTransactions() throws Exception {
     var tracker = new InMemoryBalanceTracker(2);
@@ -116,6 +120,7 @@ class InMemoryBalanceTrackerTest {
     );
   }
 
+  /** Checks shutdown wakes a queue-blocked producer and rejects its pending transaction without changing balance. */
   @Test
   void shutdownReleasesBlockedProducerWithoutAcceptingItsTransaction() throws Exception {
     var tracker = new InMemoryBalanceTracker(1);
@@ -150,6 +155,7 @@ class InMemoryBalanceTrackerTest {
     return new Transaction(UUID.randomUUID(), new BigDecimal("200.00"));
   }
 
+  /** Loads real YAML defaults and checks valid, nonpositive and nonnumeric queue-capacity overrides. */
   @Test
   void configurationLoadsFromYamlAndRejectsInvalidOverrides() {
     var context = new ApplicationContextRunner()
@@ -168,6 +174,7 @@ class InMemoryBalanceTrackerTest {
       .run(app -> assertNull(app.getStartupFailure()));
   }
 
+  /** Checks backpressure keeps balance reads available, then resumes acceptance when an immutable group is collected. */
   @Test
   void fullQueueWaitsWithoutChangingBalanceAndResumesAfterCollection() throws Exception {
     var tracker = new InMemoryBalanceTracker(1);
