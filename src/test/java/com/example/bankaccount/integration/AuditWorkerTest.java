@@ -1,6 +1,7 @@
 package com.example.bankaccount.integration;
 
 import com.example.bankaccount.audit.AuditWorker;
+import com.example.bankaccount.audit.AuditPacker;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.bankaccount.domain.Transaction;
@@ -12,6 +13,19 @@ import org.junit.jupiter.api.Test;
 
 @org.junit.jupiter.api.Tag("integration")
 class AuditWorkerTest {
+
+  @Test
+  void rejectsNullConstructorDependenciesAndNonpositiveShutdownTimeout() {
+    var tracker = new InMemoryBalanceTracker(1);
+    assertThrows(NullPointerException.class, () ->
+      new AuditWorker(null, new AuditPacker(), result -> {}, java.time.Duration.ofSeconds(1)));
+    assertThrows(NullPointerException.class, () ->
+      new AuditWorker(tracker, null, result -> {}, java.time.Duration.ofSeconds(1)));
+    assertThrows(NullPointerException.class, () ->
+      new AuditWorker(tracker, new AuditPacker(), null, java.time.Duration.ofSeconds(1)));
+    assertThrows(IllegalArgumentException.class, () ->
+      new AuditWorker(tracker, new AuditPacker(), result -> {}, java.time.Duration.ZERO));
+  }
 
   @Test
   @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)

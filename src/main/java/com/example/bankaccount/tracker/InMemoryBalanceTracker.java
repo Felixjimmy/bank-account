@@ -3,9 +3,10 @@ package com.example.bankaccount.tracker;
 import com.example.bankaccount.domain.Transaction;
 import com.example.bankaccount.service.BankAccountService;
 import java.math.BigDecimal;
+import com.example.bankaccount.audit.AuditGroupSource;
+import java.util.List;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public final class InMemoryBalanceTracker implements BankAccountService {
+public final class InMemoryBalanceTracker implements BankAccountService, AuditGroupSource {
 
   public static final int GROUP_SIZE = 1_000;
   private final int maxQueuedAuditGroups;

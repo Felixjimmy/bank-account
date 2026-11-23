@@ -6,14 +6,15 @@ import com.example.bankaccount.tracker.InMemoryBalanceTracker;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.Objects;
 import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public final class AuditWorker implements AutoCloseable {
 
-  private final InMemoryBalanceTracker tracker;
-  private final AuditPacker packer;
+  private final AuditGroupSource tracker;
+  private final AuditPackingStrategy packer;
   private final Consumer<AuditResult> publisher;
   private final Thread thread;
   private volatile RuntimeException failure;
@@ -32,10 +33,18 @@ public final class AuditWorker implements AutoCloseable {
 
   public AuditWorker(InMemoryBalanceTracker tracker, Consumer<AuditResult> publisher,
       Duration shutdownTimeout, Duration exactSearchTimeout) {
-    this.packer = new AuditPacker(exactSearchTimeout);
-    if (shutdownTimeout.isNegative() || shutdownTimeout.isZero()) throw new IllegalArgumentException("Positive shutdown timeout required");
-    this.tracker = tracker;
-    this.publisher = publisher;
+    this(tracker, new AuditPacker(exactSearchTimeout), publisher, shutdownTimeout);
+  }
+
+  public AuditWorker(AuditGroupSource tracker, AuditPackingStrategy packer,
+      Consumer<AuditResult> publisher, Duration shutdownTimeout) {
+    this.tracker = Objects.requireNonNull(tracker, "tracker");
+    this.packer = Objects.requireNonNull(packer, "packer");
+    this.publisher = Objects.requireNonNull(publisher, "publisher");
+    Objects.requireNonNull(shutdownTimeout, "shutdownTimeout");
+    if (shutdownTimeout.isNegative() || shutdownTimeout.isZero()) {
+      throw new IllegalArgumentException("Positive shutdown timeout required");
+    }
     this.shutdownTimeout = shutdownTimeout;
     this.thread = new Thread(this::run, "audit-worker");
     // An uncooperative publisher must not keep the JVM alive after the shutdown deadline.

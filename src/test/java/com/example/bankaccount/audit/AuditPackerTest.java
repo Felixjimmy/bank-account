@@ -45,6 +45,12 @@ class AuditPackerTest {
   }
 
   @Test
+  void rejectsNullTimeoutAndInput() {
+    assertThrows(NullPointerException.class, () -> new AuditPacker(null));
+    assertThrows(NullPointerException.class, () -> packer.pack(null));
+  }
+
+  @Test
   void interruptedPackingNeverReturnsAnUnprovedResult() {
     Thread.currentThread().interrupt();
     try {
