@@ -46,7 +46,7 @@ class ProducerPipelineTest {
     // A reproducible uniform sample over the full producer amount range.
     var random = new Random(317);
     var generator = new TransactionGenerator(
-      () -> BigDecimal.valueOf(random.nextInt(20_000, 50_000_001), 2),
+      () -> BigDecimal.valueOf(random.nextInt(20000, 50000001), 2),
       UUID::randomUUID
     );
     var submissions = new CopyOnWriteArrayList<AuditResult>();
@@ -61,7 +61,7 @@ class ProducerPipelineTest {
       producer.start();
       Thread.sleep(2000);
       windowStart = System.nanoTime();
-      Thread.sleep(20_000);
+      Thread.sleep(20000);
       windowEnd = System.nanoTime();
     } finally {
       // Stop acceptance first so even a blocked producer can terminate.

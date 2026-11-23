@@ -36,7 +36,7 @@ class AuditWorkerTest {
     var expectedIds = new HashSet<UUID>();
     for (int i = 0; i < 1000; i++) {
       var id = new UUID(0, i); expectedIds.add(id);
-      tracker.processTransaction(new Transaction(id, BigDecimal.valueOf(i < 500 ? 25_000_001 : -24_999_999, 2)));
+      tracker.processTransaction(new Transaction(id, BigDecimal.valueOf(i < 500 ? 25000001 : -24999999, 2)));
     }
     var small = new Transaction(UUID.randomUUID(), new BigDecimal("200.00"));
     for (int i = 0; i < 1000; i++) tracker.processTransaction(small);

@@ -14,7 +14,7 @@ public final class DifficultAuditBenchmark {
         var random = new Random(seed);
         var input = new ArrayList<Transaction>();
         for (int i = 0; i < 1000; i++) {
-            int pennies = random.nextInt(20_000, 50_000_001);
+            int pennies = random.nextInt(20000, 50000001);
             input.add(new Transaction(new UUID(seed, i), BigDecimal.valueOf(i % 2 == 0 ? pennies : -pennies, 2)));
         }
         return input;
@@ -23,7 +23,7 @@ public final class DifficultAuditBenchmark {
         if (size < 8 || size % 4 != 0) throw new IllegalArgumentException("Size must be a multiple of four, at least eight");
         var input = new ArrayList<Transaction>(size);
         for (int i = 0; i < size; i++) {
-            long pennies = i < size / 2 ? 25_000_001 : 24_999_999;
+            long pennies = i < size / 2 ? 25000001 : 24999999;
             input.add(new Transaction(new UUID(0, i), BigDecimal.valueOf(i % 2 == 0 ? pennies : -pennies, 2)));
         }
         return input;
@@ -63,7 +63,7 @@ public final class DifficultAuditBenchmark {
                         : new int[]{17,46,42,27,21,32,15};
                 input = new ArrayList<>();
                 for (int i = 0; i < units.length; i++) input.add(new Transaction(new UUID(0, i),
-                        BigDecimal.valueOf((i % 2 == 0 ? 1L : -1L) * units[i] * 10_000)));
+                        BigDecimal.valueOf((i % 2 == 0 ? 1L : -1L) * units[i] * 10000)));
                 expected = scenario.equals("repair") ? 2 : 3;
             }
             System.out.printf("START scenario=%s parameter=%d n=%d expected=%d%n", scenario, size, input.size(), expected);

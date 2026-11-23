@@ -14,7 +14,7 @@ public final class AuditScale {
     var random = new Random(317);
     var input = new ArrayList<Transaction>(size);
     for (int i = 0; i < size; i++) {
-      int pennies = random.nextInt(20_000, 50_000_001);
+      int pennies = random.nextInt(20000, 50000001);
       input.add(
         new Transaction(
           new UUID(0, i),

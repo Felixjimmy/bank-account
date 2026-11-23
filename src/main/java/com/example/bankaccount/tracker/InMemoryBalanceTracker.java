@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public final class InMemoryBalanceTracker implements BankAccountService, AuditGroupSource {
 
-  public static final int GROUP_SIZE = 1_000;
+  public static final int GROUP_SIZE = 1000;
   private final int maxQueuedAuditGroups;
   private final ArrayDeque<List<Transaction>> completed = new ArrayDeque<>();
   private ArrayList<Transaction> pending = new ArrayList<>(GROUP_SIZE);

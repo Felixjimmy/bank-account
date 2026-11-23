@@ -13,7 +13,7 @@ class TransactionGeneratorTest {
   void defaultGeneratorProducesRandomIdsAndValidPennyAmounts() {
     TransactionGenerator generator = new TransactionGenerator();
 
-    for (int i = 0; i < 1_000; i++) {
+    for (int i = 0; i < 1000; i++) {
       var transaction = generator.generate(TransactionType.CREDIT);
 
       assertNotNull(transaction.id());

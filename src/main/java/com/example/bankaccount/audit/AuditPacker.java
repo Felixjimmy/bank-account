@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 /** All capacities are exact pennies. Positions refer to the sorted input occurrences. */
 @Slf4j
 public final class AuditPacker implements AuditPackingStrategy {
-  static final int CAP = 100_000_000;
+  static final int CAP = 100000000;
 
   private final long exactSearchTimeoutNanos;
   private final LongSupplier nanoTime;
@@ -91,8 +91,8 @@ public final class AuditPacker implements AuditPackingStrategy {
     checkCancelled();
     if (timedOut) {
       log.warn("Exact audit search timed out: minimum is NOT proven; submitting best valid packing. transactions={}, batches={}, lowerBound={}, searchDurationMs={}, timeoutMs={}",
-        sizes.length, best.count(), lower, exactNanos / 1_000_000,
-        exactSearchTimeoutNanos / 1_000_000);
+        sizes.length, best.count(), lower, exactNanos / 1000000,
+        exactSearchTimeoutNanos / 1000000);
     }
     return AuditResultMaterializer.materialize(sorted, best, volumeBound,
       exactNanos, !timedOut, timedOut);

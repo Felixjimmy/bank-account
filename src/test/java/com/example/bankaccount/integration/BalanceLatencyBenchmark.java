@@ -138,7 +138,7 @@ class BalanceLatencyBenchmark {
       var random = new Random(317);
       var fixture = new ArrayList<Transaction>();
       for (int i = 0; i < InMemoryBalanceTracker.GROUP_SIZE; i++) {
-        int pennies = random.nextInt(20_000, 50_000_001);
+        int pennies = random.nextInt(20000, 50000001);
         fixture.add(
           new Transaction(
             new UUID(1, i),

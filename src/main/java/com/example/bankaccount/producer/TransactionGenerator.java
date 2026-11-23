@@ -24,7 +24,7 @@ public final class TransactionGenerator {
     this(
       () ->
         BigDecimal.valueOf(
-          ThreadLocalRandom.current().nextLong(20_000, 50_000_001),
+          ThreadLocalRandom.current().nextLong(20000, 50000001),
           2
         ),
       UUID::randomUUID

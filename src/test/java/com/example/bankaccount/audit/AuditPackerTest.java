@@ -17,12 +17,12 @@ class AuditPackerTest {
     for (int seed : new int[]{6, 9}) {
       var clock = new java.util.concurrent.atomic.AtomicLong();
       var timed = new AuditPacker(java.time.Duration.ofMillis(5),
-          () -> clock.getAndAdd(1_000_000));
+          () -> clock.getAndAdd(1000000));
       var input = DifficultAuditBenchmark.randomInput(seed);
       var result = timed.pack(input);
       assertTrue(result.searchTimedOut());
       assertFalse(result.minimumProven());
-      assertTrue(result.exactSearchNanos() >= 5_000_000);
+      assertTrue(result.exactSearchNanos() >= 5000000);
       assertEquals(seed == 6 ? 245 : 241, result.batches().size());
       DifficultAuditBenchmark.validate(input, result, -1);
     }
@@ -98,12 +98,12 @@ class AuditPackerTest {
   @Test
   void pruningAgreesWithIndependentPartitionsForPenniesDuplicatesAndSlack() {
     var random = new Random(6281);
-    int[] boundaries = {20_000, 24_999_999, 25_000_001, 33_333_333, 33_333_334, 50_000_000};
+    int[] boundaries = {20000, 24999999, 25000001, 33333333, 33333334, 50000000};
     for (int trial = 0; trial < 600; trial++) {
       int[] amounts = new int[6 + random.nextInt(4)];
       for (int i = 0; i < amounts.length; i++) {
         amounts[i] = trial % 2 == 0 ? boundaries[random.nextInt(boundaries.length)]
-            : random.nextInt(20_000, 50_000_001);
+            : random.nextInt(20000, 50000001);
       }
       int expected = minimum(amounts, 0, new int[amounts.length], 0);
       int[] signed = amounts.clone();
@@ -153,9 +153,9 @@ class AuditPackerTest {
 
   @Test
   void respectsAbsoluteValueAndTheLastPenny() {
-    assertEquals(1, pack(50_000_000, -50_000_000).batches().size());
-    assertEquals(2, pack(50_000_000, -50_000_000, 1).batches().size());
-    assertThrows(IllegalArgumentException.class, () -> pack(100_000_001));
+    assertEquals(1, pack(50000000, -50000000).batches().size());
+    assertEquals(2, pack(50000000, -50000000, 1).batches().size());
+    assertThrows(IllegalArgumentException.class, () -> pack(100000001));
     assertThrows(IllegalArgumentException.class, () -> pack());
   }
 
@@ -165,13 +165,13 @@ class AuditPackerTest {
     assertEquals(
       2,
       pack(
-        40_000_000,
-        38_000_000,
-        33_000_000,
-        27_000_000,
-        26_000_000,
-        19_000_000,
-        17_000_000
+        40000000,
+        38000000,
+        33000000,
+        27000000,
+        26000000,
+        19000000,
+        17000000
       )
         .batches()
         .size()
@@ -181,11 +181,11 @@ class AuditPackerTest {
   @Test
   void provesMinimumAboveVolumeBound() {
     var result = pack(
-      40_000_000,
-      40_000_000,
-      40_000_000,
-      40_000_000,
-      40_000_000
+      40000000,
+      40000000,
+      40000000,
+      40000000,
+      40000000
     );
     assertEquals(2, result.volumeLowerBound());
     assertEquals(3, result.batches().size());
@@ -194,13 +194,13 @@ class AuditPackerTest {
   @Test
   void rulesOutTwoBinsWhenNoSubsetFillsOneExactly() {
     var result = pack(
-      17_000_000,
-      46_000_000,
-      42_000_000,
-      27_000_000,
-      21_000_000,
-      32_000_000,
-      15_000_000
+      17000000,
+      46000000,
+      42000000,
+      27000000,
+      21000000,
+      32000000,
+      15000000
     );
     assertEquals(2, result.volumeLowerBound());
     assertEquals(3, result.batches().size());
@@ -212,7 +212,7 @@ class AuditPackerTest {
     for (int trial = 0; trial < 150; trial++) {
       int[] amounts = random
         .ints(8, 1, 51)
-        .map(v -> v * 1_000_000)
+        .map(v -> v * 1000000)
         .toArray();
       assertEquals(
         minimum(amounts, 0, new int[amounts.length], 0),
@@ -225,7 +225,7 @@ class AuditPackerTest {
     if (pos == amounts.length) return open;
     int best = amounts.length;
     for (int i = 0; i <= open; i++) {
-      if (used[i] + amounts[pos] <= 100_000_000) {
+      if (used[i] + amounts[pos] <= 100000000) {
         used[i] += amounts[pos];
         best = Math.min(
           best,
